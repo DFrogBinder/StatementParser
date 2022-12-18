@@ -14,8 +14,11 @@ def Add_Values(conn, Val):
     :param project:
     :return: project id
     """
-    sql = ''' INSERT INTO RawFinData('Date','Previous_Account_Balance','Closed_Position_PnL','Deposit_Withdrawals','Other_Transactions','Account_Balance')
-              VALUES(?,?,?,?,?,?) '''
+    sql = ''' 
+    INSERT INTO RawFinData('Date','Previous_Account_Balance','Closed_Position_PnL','Deposit_Withdrawals','Other_Transactions','Account_Balance')
+              VALUES(?,?,?,?,?,?) 
+    '''
+
     cur = conn.cursor()
     for i in range(len(Val)):
         cur.execute(sql, Val[i])
