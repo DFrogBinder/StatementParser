@@ -96,6 +96,8 @@ def compile(ArchivePath):
     return DataFrame
 
 def PlotGraphs(Data):
+   #TODO:Sort data before plotting graphs
+   
     AccBal = Data['Account_Balance']
     PnL = Data['Closed_Position_PnL']
     Time = Data['Date']
