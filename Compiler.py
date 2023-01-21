@@ -1,10 +1,14 @@
 import os 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from screeninfo import get_monitors
+import plotly.express as px
 import PyPDF2 as pd2
 import sqlite3
 import logging
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+
 from sqlite3 import Error 
 
 def Add_Values(conn, Val):
@@ -91,6 +95,37 @@ def compile(ArchivePath):
             continue
     return DataFrame
 
+def PlotGraphs(Data):
+    AccBal = Data['Account_Balance']
+    PnL = Data['Closed_Position_PnL']
+    Time = Data['Date']
+    PAccBall = Data['Previous_Account_Balance']
+    Other = Data['Other_Transactions']
+    DW = Data['Deposit_Withdrawals']
+
+    fig = make_subplots(rows=2, cols=2)
+    res = get_monitors()
+
+    fig.add_trace(
+        go.Scatter(x=Time, y=AccBal,text='Account Balance'),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Bar(x=Time, y=PnL,text='PnL'),
+        row=1, col=2
+    )
+
+    fig.add_trace(
+        go.Bar(x=Time, y=DW, text='Deposits / Withdrawals'),
+        row = 2, col= 1
+    )
+
+    fig.update_layout(height=res[0].height, width=res[0].width, title_text="Performance Graphs")
+    fig.show()
+
+    return 1
+
 def main(ArchivePath):
     DB = []
     if not os.path.exists(ArchivePath):
@@ -111,6 +146,11 @@ def main(ArchivePath):
     p2 = pd.read_sql('select * from RawFinData', Connector)
 
     Connector.close()
-    print(p2)
+    err = PlotGraphs(p2)
+    if err:
+        logging.info("Plotting Graphs Completed!")
+    else:
+        logging.error("Plotting Graphs Failed!")
+
 
 main('/Users/boyanivanov/sandbox/StatementParser/Archive')
