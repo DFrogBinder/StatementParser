@@ -96,7 +96,6 @@ def compile(ArchivePath):
     return DataFrame
 
 def PlotGraphs(Data):
-   #TODO:Sort data before plotting graphs
    
     AccBal = Data['Account_Balance']
     PnL = Data['Closed_Position_PnL']
@@ -105,21 +104,21 @@ def PlotGraphs(Data):
     Other = Data['Other_Transactions']
     DW = Data['Deposit_Withdrawals']
 
-    fig = make_subplots(rows=2, cols=2)
+    fig = make_subplots(rows=2, cols=2,subplot_titles=("Account Balance", "Closed Positions / PnL", "Deposits / Withdrawals"))
     res = get_monitors()
 
     fig.add_trace(
-        go.Scatter(x=Time, y=AccBal,text='Account Balance'),
+        go.Scatter(x=Time, y=AccBal),
         row=1, col=1
     )
 
     fig.add_trace(
-        go.Bar(x=Time, y=PnL,text='PnL'),
+        go.Bar(x=Time, y=PnL),
         row=1, col=2
     )
 
     fig.add_trace(
-        go.Bar(x=Time, y=DW, text='Deposits / Withdrawals'),
+        go.Bar(x=Time, y=DW),
         row = 2, col= 1
     )
 
@@ -146,6 +145,9 @@ def main(ArchivePath):
     Add_Values(Connector, DB)
 
     p2 = pd.read_sql('select * from RawFinData', Connector)
+    # Sorts by Date  
+    p2["Date"] = pd.to_datetime(p2["Date"], format='%d %b %Y')
+    p2 = p2.sort_values(by="Date")
 
     Connector.close()
     err = PlotGraphs(p2)
