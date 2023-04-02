@@ -1,14 +1,13 @@
 import os 
 import numpy as np
 import pandas as pd
-from screeninfo import get_monitors
-import plotly.express as px
 import PyPDF2 as pd2
 import sqlite3
 import logging
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
+import streamlit as st
+import plotly.express as px
 
+from AppKit import NSScreen
 from sqlite3 import Error 
 
 def Add_Values(conn, Val):
@@ -34,7 +33,7 @@ def create_connection(db_file):
     conn = None
     try:
         conn = sqlite3.connect(db_file)
-        logging.info("SQLite version is :",sqlite3.version)
+        # logging.info("SQLite version is :",sqlite3.version)
     except Error as e:
         logging.error(e)
     return conn
@@ -53,6 +52,9 @@ def Create_Table(Connector):
     Connector.execute(sql)
     return Connector
 
+def get_display_dimensions():
+    main_monitor = NSScreen.mainScreen().frame()
+    return (int(main_monitor.size.width), int(main_monitor.size.height))
 
 def get_data(VList,idx):
     data = VList[idx+1]
@@ -95,6 +97,35 @@ def compile(ArchivePath):
             continue
     return DataFrame
 
+# Create a scatter plot
+def scatter_plot(x,y,Title):
+    df = pd.concat([x,y],axis=1)
+    col1, col2 = df.columns
+    fig = px.scatter(df, x=col1, y=col2)
+    st.plotly_chart(fig)
+
+    fig.update_layout(
+    title={
+        'text': Title,
+        'y':0.95,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'})
+
+def bar_plots(x,y,Title):
+    df = pd.concat([x,y],axis=1)
+    col1, col2 = df.columns
+    fig = px.bar(df,x=col1, y=col2,barmode='group')
+    st.plotly_chart(fig)
+
+    fig.update_layout(
+    title={
+        'text': Title,
+        'y':0.95,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'})
+
 def PlotGraphs(Data):
    
     AccBal = Data['Account_Balance']
@@ -104,30 +135,16 @@ def PlotGraphs(Data):
     Other = Data['Other_Transactions']
     DW = Data['Deposit_Withdrawals']
 
-    fig = make_subplots(rows=2, cols=2,subplot_titles=("Account Balance", "Closed Positions / PnL", "Deposits / Withdrawals"))
-    res = get_monitors()
-
-    fig.add_trace(
-        go.Scatter(x=Time, y=AccBal),
-        row=1, col=1
-    )
-
-    fig.add_trace(
-        go.Bar(x=Time, y=PnL),
-        row=1, col=2
-    )
-
-    fig.add_trace(
-        go.Bar(x=Time, y=DW),
-        row = 2, col= 1
-    )
-
-    fig.update_layout(height=res[0].height, width=res[0].width, title_text="Performance Graphs")
-    fig.show()
+    scatter_plot(Time,AccBal,"Account Balance")
+    bar_plots(Time,PnL,"Closed Positions")
+    bar_plots(Time,DW,"Deposits / Withdrawals")
 
     return 1
 
-def main(ArchivePath):
+def app():
+    ArchivePath='/Users/boyanivanov/sandbox/StatementParser/Archive'
+    st.title('My Streamlit Dashboard')
+    
     DB = []
     if not os.path.exists(ArchivePath):
         logging.error("Archive path does not exist")
@@ -156,5 +173,5 @@ def main(ArchivePath):
     else:
         logging.error("Plotting Graphs Failed!")
 
-
-main('/Users/boyanivanov/sandbox/StatementParser/Archive')
+if __name__ == '__main__':
+    app()
