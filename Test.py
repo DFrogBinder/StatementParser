@@ -187,11 +187,10 @@ def contact():
 
 # Dictionary of pages
 pages = {
-    'Main': main_page,
     'Home': home,
     'About': about,
     'Contact': contact,
-    
+    'Main': main_page
 }
 
 # Main app
